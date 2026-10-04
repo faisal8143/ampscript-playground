@@ -1,0 +1,20 @@
+{
+  "name": "ampscript-playground",
+  "version": "0.1.0",
+  "description": "Write and preview Salesforce Marketing Cloud AMPscript in the browser, with mock subscriber data and data extensions.",
+  "main": "src/ampscript.js",
+  "files": ["src/"],
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["ampscript", "salesforce", "marketing-cloud", "sfmc", "email", "cloudpages", "interpreter"],
+  "author": "Faisal Irfan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/faisal8143/ampscript-playground.git"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

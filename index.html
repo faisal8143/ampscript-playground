@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AMPscript Playground</title>
+<meta name="description" content="Write and preview Salesforce Marketing Cloud AMPscript in your browser, with mock subscriber data and data extensions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a test bench — source on the left (template + data tabs, console below), live inbox preview on the right; stacks on phones. */
+:root {
+  --bg: #eef2f1;
+  --panel: #ffffff;
+  --sunk: #f6f8f8;
+  --ink: #14201f;
+  --muted: #5b6b69;
+  --line: #d6dfdd;
+  --accent: #0f6e6e;
+  --accent-ink: #ffffff;
+  --merge: #a85a06;
+  --merge-bg: #fff1dc;
+  --err: #b42318;
+  --err-bg: #fdecea;
+  --warn: #8a5d00;
+  --warn-bg: #fff6db;
+  --ok: #1a7f37;
+  --ok-bg: #e7f6ec;
+  --c-kw: #7a3fb0;
+  --c-str: #1a7f37;
+  --c-var: #0b63c5;
+  --c-fn: #0f6e6e;
+  --c-num: #a85a06;
+  --c-com: #8a9896;
+  --c-tag: #7d8b89;
+  --sel: rgba(15, 110, 110, .18);
+  --font-display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-code: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1716; --panel: #162120; --sunk: #121c1b; --ink: #e3ecea; --muted: #93a5a2; --line: #27403d;
+    --accent: #4cc2bd; --accent-ink: #062120; --merge: #f2a65a; --merge-bg: #3a2a14;
+    --err: #ff8a80; --err-bg: #3b1714; --warn: #f5c451; --warn-bg: #3a2f10; --ok: #6fd68a; --ok-bg: #12301d;
+    --c-kw: #c79bf2; --c-str: #8fd9a1; --c-var: #7ab8ff; --c-fn: #4cc2bd; --c-num: #f2a65a; --c-com: #6b7f7c; --c-tag: #7f9491;
+    --sel: rgba(76, 194, 189, .25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1716; --panel: #162120; --sunk: #121c1b; --ink: #e3ecea; --muted: #93a5a2; --line: #27403d;
+  --accent: #4cc2bd; --accent-ink: #062120; --merge: #f2a65a; --merge-bg: #3a2a14;
+  --err: #ff8a80; --err-bg: #3b1714; --warn: #f5c451; --warn-bg: #3a2f10; --ok: #6fd68a; --ok-bg: #12301d;
+  --c-kw: #c79bf2; --c-str: #8fd9a1; --c-var: #7ab8ff; --c-fn: #4cc2bd; --c-num: #f2a65a; --c-com: #6b7f7c; --c-tag: #7f9491;
+  --sel: rgba(76, 194, 189, .25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.5 var(--font-ui);
+  padding-inline: 16px;
+  padding-block: 0 24px;
+}
+button, select, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Top bar */
+.bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+  padding-block: 14px;
+  max-width: 1480px; margin: 0 auto;
+}
+.brand { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin-right: auto; min-width: 0; }
+.brand h1 {
+  margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.01em;
+  text-wrap: balance;
+}
+.brand h1 .pct { color: var(--merge); font-family: var(--font-code); font-weight: 600; font-size: 18px; }
+.brand small { color: var(--muted); font-size: 13px; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.field-inline { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.field-inline label { text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+select, input[type="datetime-local"] {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; min-height: 34px; max-width: 100%;
+}
+.btn {
+  border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 6px 12px; min-height: 34px;
+  cursor: pointer; font-weight: 500;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+/* Bench */
+.bench {
+  display: grid; gap: 16px; max-width: 1480px; margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+@media (max-width: 960px) { .bench { grid-template-columns: minmax(0, 1fr); } }
+
+.pane { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; display: flex; flex-direction: column; }
+.pane-head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 6px 8px; border-bottom: 1px solid var(--line);
+}
+.tabs { display: flex; flex-wrap: wrap; gap: 2px; min-width: 0; }
+.tab {
+  border: 0; background: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: var(--muted); font-weight: 500; font-size: 13px;
+}
+.tab[aria-selected="true"] { background: var(--sunk); color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
+.tab .count { font-family: var(--font-code); font-size: 11px; color: var(--muted); margin-left: 4px; }
+.spacer { flex: 1; }
+
+/* Editor */
+.editor { display: grid; grid-template-columns: auto minmax(0, 1fr); height: 520px; background: var(--sunk); border-radius: 0 0 var(--radius) var(--radius); }
+.gutter {
+  font: 13px/20px var(--font-code); color: var(--c-com); text-align: right; padding: 12px 8px 12px 12px;
+  overflow: hidden; user-select: none; border-right: 1px solid var(--line); white-space: pre; min-width: 44px;
+}
+.code-wrap { position: relative; min-width: 0; overflow: hidden; }
+.code-wrap pre, .code-wrap textarea {
+  position: absolute; inset: 0; margin: 0; padding: 12px 14px; border: 0;
+  font: 13px/20px var(--font-code); tab-size: 2; white-space: pre; overflow: auto; letter-spacing: 0;
+}
+.code-wrap pre { pointer-events: none; color: var(--ink); overflow: hidden; }
+.code-wrap textarea {
+  background: transparent; color: transparent; caret-color: var(--ink); resize: none; outline: none;
+  -webkit-text-fill-color: transparent;
+}
+.code-wrap textarea::selection { background: var(--sel); -webkit-text-fill-color: transparent; }
+.hl-block { background: var(--merge-bg); border-radius: 2px; }
+.hl-delim { color: var(--merge); font-weight: 600; }
+.hl-kw { color: var(--c-kw); font-weight: 600; }
+.hl-str { color: var(--c-str); }
+.hl-var { color: var(--c-var); }
+.hl-fn { color: var(--c-fn); font-weight: 600; }
+.hl-num { color: var(--c-num); }
+.hl-com { color: var(--c-com); font-style: italic; }
+.hl-tag { color: var(--c-tag); }
+.err-num { color: var(--err); font-weight: 600; background: var(--err-bg); border-radius: 3px; padding: 0 3px; }
+
+.json-panel { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px 12px; height: 520px; }
+.json-panel p { margin: 0; color: var(--muted); font-size: 13px; max-width: 65ch; }
+.json-panel textarea {
+  flex: 1; width: 100%; resize: none; background: var(--sunk); border: 1px solid var(--line); border-radius: 6px;
+  padding: 10px 12px; font: 13px/20px var(--font-code); tab-size: 2; white-space: pre; overflow: auto;
+}
+.json-panel .json-error { color: var(--err); font-size: 12px; min-height: 18px; }
+
+/* Console */
+.console { margin-top: 16px; }
+.status {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  background: var(--ok-bg); color: var(--ok); white-space: nowrap;
+}
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.status.err { background: var(--err-bg); color: var(--err); }
+.status.warn { background: var(--warn-bg); color: var(--warn); }
+.messages { list-style: none; margin: 0; padding: 6px; max-height: 220px; overflow: auto; display: grid; gap: 4px; }
+.messages li {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: baseline;
+  padding: 6px 8px; border-radius: 6px; font-size: 13px;
+}
+.messages li.err { background: var(--err-bg); color: var(--err); }
+.messages li.warn { background: var(--warn-bg); color: var(--warn); }
+.messages li.log { background: var(--sunk); color: var(--ink); }
+.messages li.empty { color: var(--muted); grid-template-columns: 1fr; }
+.messages .kind { font: 600 11px var(--font-code); text-transform: uppercase; letter-spacing: .05em; }
+.messages button.line {
+  border: 0; background: none; padding: 0; color: inherit; font: inherit; text-decoration: underline; cursor: pointer;
+}
+.fn-list { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px 12px; max-height: 220px; overflow: auto; }
+.fn-list button {
+  border: 1px solid var(--line); background: var(--sunk); border-radius: 4px; padding: 2px 8px; cursor: pointer;
+  font: 12px var(--font-code); color: var(--c-fn);
+}
+.fn-list button:hover { border-color: var(--accent); }
+.data-out { padding: 10px 12px 12px; max-height: 220px; overflow: auto; font: 12px/18px var(--font-code); white-space: pre; margin: 0; }
+
+/* Preview */
+.preview-pane { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 960px) { .preview-pane { position: static; } }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; background: var(--panel); padding: 5px 10px; cursor: pointer; font-size: 13px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.inbox-meta {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; padding: 10px 14px; border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.inbox-meta dt { color: var(--muted); }
+.inbox-meta dd { margin: 0; overflow-wrap: anywhere; }
+.stage { background: var(--sunk); padding: 16px; display: flex; justify-content: center; overflow: auto; height: 700px; border-radius: 0 0 var(--radius) var(--radius); }
+.stage iframe { background: #ffffff; border: 1px solid var(--line); width: 100%; height: 100%; display: block; transition: width .2s; }
+.stage.mobile iframe { width: 375px; max-width: 100%; border-radius: 18px; }
+.source { margin: 0; padding: 14px; font: 12px/18px var(--font-code); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); width: 100%; }
+.raised-banner {
+  margin: 12px 14px 0; padding: 10px 12px; border-radius: 6px; background: var(--err-bg); color: var(--err); font-size: 13px;
+}
+
+footer.foot { max-width: 1480px; margin: 18px auto 0; color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; gap: 6px 16px; }
+footer.foot a { color: var(--accent); }
+
+@media (max-width: 600px) {
+  .editor, .json-panel { height: 420px; }
+  .stage { height: 560px; padding: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .stage iframe { transition: none; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <h1><span class="pct">%%[</span> AMPscript Playground <span class="pct">]%%</span></h1>
+    <small>Preview SFMC personalisation without a send</small>
+  </div>
+  <div class="controls">
+    <div class="field-inline">
+      <label for="example">Example</label>
+      <select id="example"></select>
+    </div>
+    <div class="field-inline">
+      <label for="sendDate" title="The date and time Now() returns">Send date</label>
+      <input type="datetime-local" id="sendDate" step="60">
+    </div>
+    <button class="btn" id="resetBtn" type="button">Reset example</button>
+    <button class="btn primary" id="shareBtn" type="button" hidden>Copy share link</button>
+  </div>
+</header>
+
+<main class="bench">
+  <div>
+    <section class="pane" aria-label="Source">
+      <div class="pane-head">
+        <div class="tabs" role="tablist" aria-label="Source">
+          <button class="tab" role="tab" id="tab-template" aria-selected="true" data-panel="template">Template</button>
+          <button class="tab" role="tab" id="tab-subscriber" aria-selected="false" data-panel="subscriber">Subscriber</button>
+          <button class="tab" role="tab" id="tab-des" aria-selected="false" data-panel="des">Data extensions</button>
+          <button class="tab" role="tab" id="tab-blocks" aria-selected="false" data-panel="blocks">Content blocks</button>
+          <button class="tab" role="tab" id="tab-params" aria-selected="false" data-panel="params">Page params</button>
+        </div>
+      </div>
+
+      <div id="panel-template" role="tabpanel" aria-labelledby="tab-template">
+        <div class="editor">
+          <div class="gutter" id="gutter" aria-hidden="true">1</div>
+          <div class="code-wrap">
+            <pre id="highlight" aria-hidden="true"></pre>
+            <textarea id="source" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="AMPscript template"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-subscriber" role="tabpanel" aria-labelledby="tab-subscriber" hidden>
+        <div class="json-panel">
+          <p>Profile attributes for the test subscriber, used by <code>%%FirstName%%</code>, <code>AttributeValue()</code> and bare attribute names.</p>
+          <textarea id="json-subscriber" spellcheck="false" aria-label="Subscriber JSON"></textarea>
+          <div class="json-error" id="err-subscriber" role="status"></div>
+        </div>
+      </div>
+      <div id="panel-des" role="tabpanel" aria-labelledby="tab-des" hidden>
+        <div class="json-panel">
+          <p>Data extensions as <code>{ "DE_Name": [ rows ] }</code>. Lookups match names, fields and values without regard to case, as in SFMC.</p>
+          <textarea id="json-des" spellcheck="false" aria-label="Data extensions JSON"></textarea>
+          <div class="json-error" id="err-des" role="status"></div>
+        </div>
+      </div>
+      <div id="panel-blocks" role="tabpanel" aria-labelledby="tab-blocks" hidden>
+        <div class="json-panel">
+          <p>Content Builder blocks for <code>ContentBlockByKey()</code>, as <code>{ "key": "html" }</code>. Blocks can contain AMPscript too.</p>
+          <textarea id="json-blocks" spellcheck="false" aria-label="Content blocks JSON"></textarea>
+          <div class="json-error" id="err-blocks" role="status"></div>
+        </div>
+      </div>
+      <div id="panel-params" role="tabpanel" aria-labelledby="tab-params" hidden>
+        <div class="json-panel">
+          <p>Query string and form values for CloudPages, read with <code>RequestParameter()</code>.</p>
+          <textarea id="json-params" spellcheck="false" aria-label="Page parameters JSON"></textarea>
+          <div class="json-error" id="err-params" role="status"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pane console" aria-label="Console">
+      <div class="pane-head">
+        <div class="tabs" role="tablist" aria-label="Console">
+          <button class="tab" role="tab" id="ctab-messages" aria-selected="true" data-cpanel="messages">Messages<span class="count" id="msgCount"></span></button>
+          <button class="tab" role="tab" id="ctab-data" aria-selected="false" data-cpanel="data">Data after render</button>
+          <button class="tab" role="tab" id="ctab-fns" aria-selected="false" data-cpanel="fns">Functions</button>
+        </div>
+        <span class="spacer"></span>
+        <span class="status" id="status" role="status">Rendered</span>
+      </div>
+      <div id="cpanel-messages" role="tabpanel"><ul class="messages" id="messages"></ul></div>
+      <div id="cpanel-data" role="tabpanel" hidden><pre class="data-out" id="dataOut"></pre></div>
+      <div id="cpanel-fns" role="tabpanel" hidden><div class="fn-list" id="fnList"></div></div>
+    </section>
+  </div>
+
+  <section class="pane preview-pane" aria-label="Preview">
+    <div class="pane-head">
+      <div class="seg" role="group" aria-label="Preview width">
+        <button type="button" id="viewDesktop" aria-pressed="true">Desktop</button>
+        <button type="button" id="viewMobile" aria-pressed="false">Mobile</button>
+      </div>
+      <div class="seg" role="group" aria-label="Preview mode">
+        <button type="button" id="modeRendered" aria-pressed="true">Rendered</button>
+        <button type="button" id="modeHtml" aria-pressed="false">HTML</button>
+      </div>
+      <span class="spacer"></span>
+      <button class="btn" type="button" id="copyHtml">Copy HTML</button>
+    </div>
+    <dl class="inbox-meta">
+      <dt>To</dt><dd id="metaTo"></dd>
+      <dt>Sent</dt><dd id="metaSent"></dd>
+    </dl>
+    <div id="raised" class="raised-banner" hidden></div>
+    <div class="stage" id="stage">
+      <iframe id="frame" title="Rendered email preview" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe>
+      <pre class="source" id="htmlOut" hidden></pre>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>Runs entirely in your browser. Not affiliated with Salesforce. A preview aid: always do a final test send in Marketing Cloud.</span>
+  <a href="https://github.com/faisal8143/ampscript-playground">Source on GitHub</a>
+</footer>
+
+<script src="src/ampscript.js"></script>
+<script src="src/examples.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var src = $('source'), hl = $('highlight'), gutter = $('gutter');
+  var jsonFields = {
+    subscriber: { el: $('json-subscriber'), err: $('err-subscriber'), value: {} },
+    des: { el: $('json-des'), err: $('err-des'), value: {} },
+    blocks: { el: $('json-blocks'), err: $('err-blocks'), value: {} },
+    params: { el: $('json-params'), err: $('err-params'), value: {} }
+  };
+  var examples = window.AMP_EXAMPLES;
+  var lastResult = null;
+  var errorLine = null;
+  var STORE_KEY = 'ampscript-playground:v1';
+
+  // ---------- Syntax highlighting ----------
+  var KW = /^(if|then|elseif|else|endif|for|to|downto|do|next|set|var|and|or|not|true|false)$/i;
+  function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+  function highlightCode(code) {
+    var out = '';
+    var re = /(\/\*[\s\S]*?(?:\*\/|$))|("(?:[^"]|"")*"?|'(?:[^']|'')*'?)|(@[A-Za-z_]\w*)|(-?\d+(?:\.\d+)?)|([A-Za-z_]\w*)(\s*\()?|([\s\S])/g;
+    var m;
+    while ((m = re.exec(code))) {
+      if (m[1]) out += '<span class="hl-com">' + esc(m[1]) + '</span>';
+      else if (m[2]) out += '<span class="hl-str">' + esc(m[2]) + '</span>';
+      else if (m[3]) out += '<span class="hl-var">' + esc(m[3]) + '</span>';
+      else if (m[4]) out += '<span class="hl-num">' + esc(m[4]) + '</span>';
+      else if (m[5]) {
+        if (KW.test(m[5])) out += '<span class="hl-kw">' + esc(m[5]) + '</span>' + (m[6] ? esc(m[6]) : '');
+        else if (m[6]) out += '<span class="hl-fn">' + esc(m[5]) + '</span>' + esc(m[6]);
+        else out += esc(m[5]);
+      } else out += esc(m[7]);
+    }
+    return out;
+  }
+
+  function highlightHtml(text) {
+    return esc(text).replace(/&lt;\/?[A-Za-z][^&]*?(?:&gt;|$)/g, function (t) { return '<span class="hl-tag">' + t + '</span>'; });
+  }
+
+  function highlight(text) {
+    var out = '';
+    var re = /%%\[([\s\S]*?)(\]%%|$)|%%=([\s\S]*?)(=%%|$)|%%[A-Za-z_][\w ]{0,99}?%%/g;
+    var last = 0, m;
+    while ((m = re.exec(text))) {
+      if (m[0] === '') { re.lastIndex++; continue; }
+      out += highlightHtml(text.slice(last, m.index));
+      if (m[0].indexOf('%%[') === 0) {
+        out += '<span class="hl-block"><span class="hl-delim">%%[</span>' + highlightCode(m[1]) + '<span class="hl-delim">' + esc(m[2]) + '</span></span>';
+      } else if (m[0].indexOf('%%=') === 0) {
+        out += '<span class="hl-block"><span class="hl-delim">%%=</span>' + highlightCode(m[3]) + '<span class="hl-delim">' + esc(m[4]) + '</span></span>';
+      } else {
+        out += '<span class="hl-block hl-delim">' + esc(m[0]) + '</span>';
+      }
+      last = re.lastIndex;
+    }
+    out += highlightHtml(text.slice(last));
+    return out;
+  }
+
+  function paintEditor() {
+    var text = src.value;
+    var lines = text.split('\n');
+    hl.innerHTML = highlight(text) + '\n ';
+    var nums = '';
+    for (var i = 1; i <= lines.length; i++) {
+      nums += (i === errorLine ? '<span class="err-num" title="Error on this line">' + i + '</span>' : i) + '\n';
+    }
+    gutter.innerHTML = nums;
+    syncScroll();
+  }
+  function syncScroll() {
+    hl.scrollTop = src.scrollTop;
+    hl.scrollLeft = src.scrollLeft;
+    gutter.scrollTop = src.scrollTop;
+  }
+
+  // ---------- Rendering ----------
+  var timer = null;
+  function schedule() { clearTimeout(timer); timer = setTimeout(run, 180); }
+
+  function sendDate() {
+    var v = $('sendDate').value;
+    return v ? v + ':00' : null;
+  }
+
+  function run() {
+    var res = window.AMPscript.render(src.value, {
+      subscriber: jsonFields.subscriber.value,
+      dataExtensions: jsonFields.des.value,
+      contentBlocks: jsonFields.blocks.value,
+      requestParameters: jsonFields.params.value,
+      now: sendDate()
+    });
+    lastResult = res;
+    errorLine = res.errors.length && res.errors[0].line ? res.errors[0].line : null;
+    paintEditor();
+    showPreview(res);
+    showMessages(res);
+    $('dataOut').textContent = JSON.stringify(res.dataExtensions, null, 2);
+    save();
+  }
+
+  function showPreview(res) {
+    var doc = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><base target="_blank">' +
+      '<style>body{margin:0;background:#ffffff;color:#222222;}</style></head><body>' + res.html + '</body></html>';
+    if (!res.errors.length || res.raised) $('frame').srcdoc = doc;
+    $('htmlOut').textContent = res.html;
+    var raised = $('raised');
+    if (res.raised) { raised.textContent = res.errors[0].message; raised.hidden = false; } else { raised.hidden = true; }
+
+    var sub = jsonFields.subscriber.value || {};
+    var email = sub.EmailAddress || sub.Email || sub.emailaddr || '';
+    var name = [sub.FirstName, sub.LastName].filter(Boolean).join(' ');
+    $('metaTo').textContent = email ? (name ? name + ' <' + email + '>' : email) : '(no EmailAddress in subscriber data)';
+    var d = sendDate() ? new Date(sendDate()) : new Date();
+    $('metaSent').textContent = d.toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+
+  function li(kind, label, text, line) {
+    var item = document.createElement('li');
+    item.className = kind;
+    var k = document.createElement('span');
+    k.className = 'kind';
+    k.textContent = label;
+    var body = document.createElement('span');
+    if (line) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'line';
+      b.textContent = 'Line ' + line;
+      b.addEventListener('click', function () { goToLine(line); });
+      body.appendChild(b);
+      body.appendChild(document.createTextNode(': '));
+    }
+    body.appendChild(document.createTextNode(text));
+    item.appendChild(k);
+    item.appendChild(body);
+    return item;
+  }
+
+  function showMessages(res) {
+    var list = $('messages');
+    list.textContent = '';
+    res.errors.forEach(function (e) { list.appendChild(li('err', 'Error', e.message, e.line)); });
+    res.warnings.forEach(function (w) { list.appendChild(li('warn', 'Warning', w)); });
+    res.log.forEach(function (l) { list.appendChild(li('log', 'Data', l)); });
+    var n = res.errors.length + res.warnings.length + res.log.length;
+    if (!n) {
+      var ok = document.createElement('li');
+      ok.className = 'empty';
+      ok.textContent = 'No errors or warnings.';
+      list.appendChild(ok);
+    }
+    $('msgCount').textContent = n ? String(n) : '';
+    var status = $('status');
+    if (res.errors.length) {
+      status.className = 'status err';
+      status.textContent = res.raised ? 'RaiseError' : (res.errors[0].line ? 'Error on line ' + res.errors[0].line : 'Error');
+    } else if (res.warnings.length) {
+      status.className = 'status warn';
+      status.textContent = 'Rendered · ' + res.warnings.length + ' warning' + (res.warnings.length > 1 ? 's' : '');
+    } else {
+      status.className = 'status';
+      status.textContent = 'Rendered';
+    }
+  }
+
+  function goToLine(n) {
+    selectTab('template');
+    var lines = src.value.split('\n');
+    var start = 0;
+    for (var i = 0; i < n - 1 && i < lines.length; i++) start += lines[i].length + 1;
+    var end = start + (lines[n - 1] || '').length;
+    src.focus();
+    src.setSelectionRange(start, end);
+    src.scrollTop = Math.max(0, (n - 5) * 20);
+    syncScroll();
+  }
+
+  // ---------- JSON panels ----------
+  function readJson(key) {
+    var f = jsonFields[key];
+    var text = f.el.value.trim();
+    if (!text) { f.value = {}; f.err.textContent = ''; return; }
+    try {
+      var v = JSON.parse(text);
+      if (!v || typeof v !== 'object' || Array.isArray(v)) throw new Error('Expected an object { ... }');
+      f.value = v;
+      f.err.textContent = '';
+    } catch (e) {
+      f.err.textContent = 'Invalid JSON, still using the last valid version. ' + e.message;
+    }
+  }
+  Object.keys(jsonFields).forEach(function (key) {
+    jsonFields[key].el.addEventListener('input', function () { readJson(key); schedule(); });
+  });
+
+  // ---------- Tabs ----------
+  function selectTab(name) {
+    document.querySelectorAll('[data-panel]').forEach(function (t) {
+      var on = t.getAttribute('data-panel') === name;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      $('panel-' + t.getAttribute('data-panel')).hidden = !on;
+    });
+    if (name === 'template') requestAnimationFrame(syncScroll);
+  }
+  document.querySelectorAll('[data-panel]').forEach(function (t) {
+    t.addEventListener('click', function () { selectTab(t.getAttribute('data-panel')); });
+  });
+  document.querySelectorAll('[data-cpanel]').forEach(function (t) {
+    t.addEventListener('click', function () {
+      document.querySelectorAll('[data-cpanel]').forEach(function (o) {
+        var on = o === t;
+        o.setAttribute('aria-selected', on ? 'true' : 'false');
+        $('cpanel-' + o.getAttribute('data-cpanel')).hidden = !on;
+      });
+    });
+  });
+
+  // ---------- Editor behaviour ----------
+  src.addEventListener('input', function () { errorLine = null; paintEditor(); schedule(); });
+  src.addEventListener('scroll', syncScroll);
+  src.addEventListener('keydown', function (e) {
+    if (e.key === 'Tab' && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      insertAtCursor('  ');
+    }
+  });
+  function insertAtCursor(text, caretOffset) {
+    var s = src.selectionStart, en = src.selectionEnd;
+    src.setRangeText(text, s, en, 'end');
+    if (caretOffset !== undefined) src.setSelectionRange(s + caretOffset, s + caretOffset);
+    src.dispatchEvent(new Event('input'));
+  }
+
+  // ---------- Functions list ----------
+  window.AMPscript.functions.slice().sort().forEach(function (name) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = name + '()';
+    b.title = 'Insert ' + name + '() at the cursor';
+    b.addEventListener('click', function () {
+      selectTab('template');
+      src.focus();
+      insertAtCursor(name + '()', name.length + 1);
+    });
+    $('fnList').appendChild(b);
+  });
+
+  // ---------- Preview controls ----------
+  function seg(onId, offId, fn) {
+    $(onId).addEventListener('click', function () {
+      $(onId).setAttribute('aria-pressed', 'true');
+      $(offId).setAttribute('aria-pressed', 'false');
+      fn();
+    });
+  }
+  seg('viewDesktop', 'viewMobile', function () { $('stage').classList.remove('mobile'); });
+  seg('viewMobile', 'viewDesktop', function () { $('stage').classList.add('mobile'); });
+  seg('modeRendered', 'modeHtml', function () { $('frame').hidden = false; $('htmlOut').hidden = true; });
+  seg('modeHtml', 'modeRendered', function () { $('frame').hidden = true; $('htmlOut').hidden = false; });
+
+  $('copyHtml').addEventListener('click', function () {
+    var text = lastResult ? lastResult.html : '';
+    var btn = this;
+    function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = 'Copy HTML'; }, 1500); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { done('Copied'); }, fallback);
+    } else fallback();
+    function fallback() {
+      $('modeHtml').click();
+      var range = document.createRange();
+      range.selectNodeContents($('htmlOut'));
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      done('Selected, press Ctrl+C');
+    }
+  });
+
+  // ---------- Examples, state, sharing ----------
+  examples.forEach(function (ex, i) {
+    var o = document.createElement('option');
+    o.value = String(i);
+    o.textContent = ex.name;
+    $('example').appendChild(o);
+  });
+
+  function setJson(key, value) {
+    jsonFields[key].el.value = JSON.stringify(value || {}, null, 2);
+    readJson(key);
+  }
+
+  function loadState(st) {
+    src.value = st.template || '';
+    setJson('subscriber', st.subscriber);
+    setJson('des', st.dataExtensions);
+    setJson('blocks', st.contentBlocks);
+    setJson('params', st.requestParameters);
+    if (st.sendDate) $('sendDate').value = st.sendDate;
+    if (typeof st.example === 'number') $('example').value = String(st.example);
+    src.scrollTop = 0;
+    run();
+  }
+
+  function loadExample(i) {
+    var ex = examples[i];
+    loadState({
+      template: ex.template, subscriber: ex.subscriber, dataExtensions: ex.dataExtensions,
+      contentBlocks: ex.contentBlocks, requestParameters: ex.requestParameters || {}, example: i,
+      sendDate: $('sendDate').value || '2026-10-04T09:00'
+    });
+  }
+
+  function currentState() {
+    return {
+      template: src.value,
+      subscriber: jsonFields.subscriber.value,
+      dataExtensions: jsonFields.des.value,
+      contentBlocks: jsonFields.blocks.value,
+      requestParameters: jsonFields.params.value,
+      sendDate: $('sendDate').value,
+      example: parseInt($('example').value, 10)
+    };
+  }
+
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(currentState())); } catch (e) { /* storage unavailable */ }
+  }
+
+  function b64urlEncode(str) {
+    var bytes = new TextEncoder().encode(str), bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  function b64urlDecode(s) {
+    s = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    var bin = atob(s), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+
+  $('example').addEventListener('change', function () { loadExample(parseInt(this.value, 10)); });
+  $('resetBtn').addEventListener('click', function () { loadExample(parseInt($('example').value, 10) || 0); });
+  $('sendDate').addEventListener('change', run);
+
+  var canShare = /(^|\.)github\.io$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+  $('shareBtn').hidden = !canShare;
+  $('shareBtn').addEventListener('click', function () {
+    var url = location.href.split('#')[0] + '#p' + b64urlEncode(JSON.stringify(currentState()));
+    var btn = this;
+    function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = 'Copy share link'; }, 1800); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { done('Link copied'); }, function () { history.replaceState(null, '', url); done('Link is in the address bar'); });
+    } else { history.replaceState(null, '', url); done('Link is in the address bar'); }
+  });
+
+  // ---------- Boot ----------
+  $('sendDate').value = '2026-10-04T09:00';
+  var booted = false;
+  if (/^#p[A-Za-z0-9_-]+$/.test(location.hash)) {
+    try { loadState(JSON.parse(b64urlDecode(location.hash.slice(2)))); booted = true; } catch (e) { /* bad link: fall through */ }
+  }
+  if (!booted) {
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+      if (saved && typeof saved.template === 'string') { loadState(saved); booted = true; }
+    } catch (e) { /* storage unavailable */ }
+  }
+  if (!booted) loadExample(0);
+})();
+</script>
+</body>
+</html>
