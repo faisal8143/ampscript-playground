@@ -1,0 +1,4 @@
+%%[ SET @tier = Lookup("Members", "Tier", "Email", emailaddr) ]%%
+<h1>Hi %%first_name%%</h1>
+%%[ IF @tier == "Gold" THEN ]%%<p>Gold perks</p>%%[ ELSE ]%%<p>Join us</p>%%[ ENDIF ]%%
+%%=ContentBlockByKey("footer")=%%

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "AMPscript",
+  "scopeName": "text.html.ampscript",
+  "patterns": [
+    { "include": "ampscript.injection" },
+    { "include": "text.html.basic" }
+  ]
+}

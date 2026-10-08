@@ -1,0 +1,153 @@
+{
+  "name": "ampscript-playground",
+  "displayName": "AMPscript Preview & Check",
+  "description": "Live preview and error checking for Salesforce Marketing Cloud AMPscript, with test subscribers and data extensions. No .NET or Marketing Cloud login needed.",
+  "version": "0.1.0",
+  "publisher": "faisal8143",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "homepage": "https://github.com/faisal8143/ampscript-playground#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/faisal8143/ampscript-playground.git",
+    "directory": "vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/faisal8143/ampscript-playground/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "ampscript",
+    "salesforce",
+    "marketing cloud",
+    "sfmc",
+    "email",
+    "cloudpages",
+    "preview"
+  ],
+  "activationEvents": [
+    "onLanguage:html",
+    "onLanguage:ampscript"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "ampscript",
+        "aliases": [
+          "AMPscript",
+          "ampscript"
+        ],
+        "extensions": [
+          ".amp",
+          ".ampscript"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ampscript",
+        "scopeName": "text.html.ampscript",
+        "path": "./syntaxes/ampscript.tmLanguage.json",
+        "embeddedLanguages": {
+          "source.ampscript": "ampscript"
+        }
+      },
+      {
+        "scopeName": "ampscript.injection",
+        "path": "./syntaxes/ampscript-injection.tmLanguage.json",
+        "injectTo": [
+          "text.html.basic",
+          "text.html.ampscript"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "ampscript.openPreview",
+        "title": "Open Preview to the Side",
+        "category": "AMPscript",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "ampscript.createDataFile",
+        "title": "Create Test Data File",
+        "category": "AMPscript"
+      },
+      {
+        "command": "ampscript.chooseSubscriber",
+        "title": "Choose Test Subscriber",
+        "category": "AMPscript"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "ampscript.openPreview",
+          "when": "editorLangId == ampscript || editorLangId == html",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "ampscript.openPreview",
+          "when": "editorLangId == ampscript || editorLangId == html"
+        },
+        {
+          "command": "ampscript.createDataFile",
+          "when": "editorLangId == ampscript || editorLangId == html"
+        },
+        {
+          "command": "ampscript.chooseSubscriber",
+          "when": "editorLangId == ampscript || editorLangId == html"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AMPscript",
+      "properties": {
+        "ampscript.diagnostics.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show AMPscript errors in the Problems panel as you type."
+        },
+        "ampscript.diagnostics.warnings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Also show warnings, such as personalisation strings with no test value."
+        },
+        "ampscript.dataFile": {
+          "type": "string",
+          "default": "",
+          "description": "Test data file to use for every template, relative to the workspace folder. Leave empty to find <name>.data.json, ampscript.data.json or AMPscript Core folders automatically."
+        }
+      }
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          "*.data.json",
+          "ampscript.data.json"
+        ],
+        "url": "./schemas/data.schema.json"
+      }
+    ]
+  },
+  "scripts": {
+    "package": "vsce package --no-dependencies",
+    "test:unit": "node --test test/unit.test.js",
+    "test:integration": "node test/runIntegration.js"
+  },
+  "devDependencies": {
+    "@vscode/test-electron": "^2.4.0",
+    "@vscode/vsce": "^3.0.0"
+  }
+}

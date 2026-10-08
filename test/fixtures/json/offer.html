@@ -1,0 +1,6 @@
+%%[
+SET @name = AttributeValue("FirstName")
+SET @points = Lookup("Loyalty", "Points", "SubscriberKey", _subscriberkey)
+]%%
+<p>Hi %%=v(@name)=%%, you have %%=FormatNumber(@points, "N0")=%% points.</p>
+<p>%%LastName%%</p>

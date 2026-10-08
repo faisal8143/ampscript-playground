@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AMPscript test data",
+  "description": "Test data for AMPscript Preview & Check and the ampscript CLI.",
+  "type": "object",
+  "properties": {
+    "subscribers": {
+      "type": "array",
+      "description": "Test subscribers. The preview can switch between them, and checks run against every one.",
+      "items": {
+        "type": "object",
+        "description": "Profile attributes, e.g. FirstName, EmailAddress, SubscriberKey. Add _label to name the subscriber in the preview.",
+        "properties": { "_label": { "type": "string", "description": "Name shown in the preview's subscriber list." } }
+      }
+    },
+    "subscriber": {
+      "type": "object",
+      "description": "A single test subscriber. Use subscribers for more than one."
+    },
+    "dataExtensions": {
+      "description": "Data extensions by name, each a list of rows. Or a folder of CSV files (one file per data extension).",
+      "oneOf": [
+        { "type": "object", "additionalProperties": { "type": "array", "items": { "type": "object" } } },
+        { "type": "string" }
+      ]
+    },
+    "contentBlocks": {
+      "description": "Content blocks by key or name for ContentBlockByKey/Name/Id. Or a folder of files.",
+      "oneOf": [
+        { "type": "object", "additionalProperties": { "type": "string" } },
+        { "type": "string" }
+      ]
+    },
+    "requestParameters": {
+      "type": "object",
+      "description": "Query string and form values for RequestParameter() on CloudPages.",
+      "additionalProperties": { "type": "string" }
+    },
+    "now": {
+      "type": "string",
+      "description": "What Now() returns, e.g. 2026-12-24T09:00:00. Use it to test date logic."
+    }
+  }
+}

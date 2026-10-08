@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   engine:
+    name: Engine and CLI (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,3 +22,33 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: node --check src/ampscript.js
       - run: npm test
+      - name: npm package contents
+        run: npm pack --dry-run
+
+  vscode:
+    name: VS Code extension
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Engine copy is up to date
+        working-directory: .
+        run: |
+          node scripts/sync-vscode.js
+          git diff --exit-code vscode/lib/
+      - name: Unit tests
+        run: npm run test:unit
+      - name: Integration tests in real VS Code
+        run: xvfb-run -a npm run test:integration
+      - name: Package
+        run: npx vsce package --no-dependencies
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: vscode/*.vsix

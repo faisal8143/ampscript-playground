@@ -1,0 +1,112 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "scopeName": "ampscript.injection",
+  "injectionSelector": "L:text.html -comment.block.html",
+  "patterns": [
+    { "include": "#block" },
+    { "include": "#inline" },
+    { "include": "#script-tag" },
+    { "include": "#personalization" }
+  ],
+  "repository": {
+    "block": {
+      "name": "meta.embedded.block.ampscript",
+      "begin": "%%\\[",
+      "end": "\\]%%",
+      "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.ampscript" } },
+      "endCaptures": { "0": { "name": "punctuation.section.embedded.end.ampscript" } },
+      "contentName": "source.ampscript",
+      "patterns": [{ "include": "#code" }]
+    },
+    "inline": {
+      "name": "meta.embedded.inline.ampscript",
+      "begin": "%%=",
+      "end": "=%%",
+      "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.ampscript" } },
+      "endCaptures": { "0": { "name": "punctuation.section.embedded.end.ampscript" } },
+      "contentName": "source.ampscript",
+      "patterns": [{ "include": "#code" }]
+    },
+    "script-tag": {
+      "name": "meta.embedded.block.ampscript",
+      "begin": "(?i)(<)(script)\\b(?=[^>]*\\brunat\\s*=\\s*[\"']?server)(?=[^>]*\\blanguage\\s*=\\s*[\"']?ampscript)([^>]*)(>)",
+      "end": "(?i)(</)(script)\\s*(>)",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.html" },
+        "2": { "name": "entity.name.tag.script.html" },
+        "4": { "name": "punctuation.definition.tag.end.html" }
+      },
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.tag.begin.html" },
+        "2": { "name": "entity.name.tag.script.html" },
+        "3": { "name": "punctuation.definition.tag.end.html" }
+      },
+      "contentName": "source.ampscript",
+      "patterns": [{ "include": "#code" }]
+    },
+    "personalization": {
+      "name": "variable.other.personalization.ampscript",
+      "match": "%%[A-Za-z_][\\w ]{0,99}?%%"
+    },
+    "code": {
+      "patterns": [
+        { "include": "#comment" },
+        { "include": "#string-double" },
+        { "include": "#string-single" },
+        {
+          "name": "keyword.control.ampscript",
+          "match": "(?i)\\b(if|then|elseif|else|endif|for|to|downto|do|next|set|var)\\b"
+        },
+        {
+          "name": "keyword.operator.logical.ampscript",
+          "match": "(?i)\\b(and|or|not)\\b"
+        },
+        {
+          "name": "constant.language.boolean.ampscript",
+          "match": "(?i)\\b(true|false)\\b"
+        },
+        {
+          "name": "variable.other.ampscript",
+          "match": "@[A-Za-z_]\\w*"
+        },
+        {
+          "match": "([A-Za-z_]\\w*)\\s*(?=\\()",
+          "captures": { "1": { "name": "support.function.ampscript" } }
+        },
+        {
+          "name": "constant.numeric.ampscript",
+          "match": "-?\\b\\d+(\\.\\d+)?\\b"
+        },
+        {
+          "name": "variable.other.attribute.ampscript",
+          "match": "\\[[^\\]\\n%]+\\]"
+        },
+        {
+          "name": "keyword.operator.comparison.ampscript",
+          "match": "==|!=|<>|<=|>=|<|>"
+        },
+        {
+          "name": "keyword.operator.assignment.ampscript",
+          "match": "="
+        }
+      ]
+    },
+    "comment": {
+      "name": "comment.block.ampscript",
+      "begin": "/\\*",
+      "end": "\\*/"
+    },
+    "string-double": {
+      "name": "string.quoted.double.ampscript",
+      "begin": "\"",
+      "end": "\"(?!\")",
+      "patterns": [{ "name": "constant.character.escape.ampscript", "match": "\"\"" }]
+    },
+    "string-single": {
+      "name": "string.quoted.single.ampscript",
+      "begin": "'",
+      "end": "'(?!')",
+      "patterns": [{ "name": "constant.character.escape.ampscript", "match": "''" }]
+    }
+  }
+}

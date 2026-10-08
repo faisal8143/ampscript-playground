@@ -1,13 +1,28 @@
 {
   "name": "ampscript-playground",
-  "version": "0.1.0",
-  "description": "Write and preview Salesforce Marketing Cloud AMPscript in the browser, with mock subscriber data and data extensions.",
+  "version": "0.2.0",
+  "description": "Render, preview and check Salesforce Marketing Cloud AMPscript locally: a JavaScript AMPscript engine, CLI for CI, browser playground and VS Code extension.",
   "main": "src/ampscript.js",
-  "files": ["src/"],
+  "files": [
+    "src/",
+    "bin/"
+  ],
   "scripts": {
-    "test": "node --test"
+    "test": "node --test test/*.test.js",
+    "sync:vscode": "node scripts/sync-vscode.js"
   },
-  "keywords": ["ampscript", "salesforce", "marketing-cloud", "sfmc", "email", "cloudpages", "interpreter"],
+  "keywords": [
+    "ampscript",
+    "salesforce",
+    "marketing-cloud",
+    "sfmc",
+    "marketing-cloud-next",
+    "email",
+    "cloudpages",
+    "interpreter",
+    "cli",
+    "lint"
+  ],
   "author": "Faisal Irfan",
   "license": "MIT",
   "repository": {
@@ -16,5 +31,23 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "types": "src/ampscript.d.ts",
+  "bin": {
+    "ampscript": "bin/ampscript.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/ampscript.d.ts",
+      "default": "./src/ampscript.js"
+    },
+    "./tooling": "./src/tooling.js",
+    "./functions": "./src/functions.js",
+    "./project-data": "./src/project-data.js",
+    "./package.json": "./package.json"
+  },
+  "homepage": "https://faisal8143.github.io/ampscript-playground/",
+  "bugs": {
+    "url": "https://github.com/faisal8143/ampscript-playground/issues"
   }
 }

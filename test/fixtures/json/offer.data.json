@@ -1,0 +1,8 @@
+{
+  "subscribers": [
+    { "SubscriberKey": "A1", "FirstName": "Ana", "LastName": "Lee" },
+    { "SubscriberKey": "B2", "FirstName": "Bo" }
+  ],
+  "dataExtensions": { "Loyalty": [ { "SubscriberKey": "A1", "Points": 1200 }, { "SubscriberKey": "B2", "Points": "lots" } ] },
+  "now": "2026-10-08T09:00:00"
+}
